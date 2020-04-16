@@ -66,7 +66,7 @@
         <div class="table-responsive">    
           <table class="table table-bordered">
             <thead>
-              <tr>
+              <tr class="info">
                 <th>STT</th>
                 <th>Loại</th>
                 <th>Tên thiết bị</th>
