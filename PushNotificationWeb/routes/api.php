@@ -15,4 +15,3 @@ use Illuminate\Http\Request;
 
 Route::post('getinfo', 'API\GetInfoApp@getInfo');
 Route::post('getfcmtoken', 'API\GetInfoApp@updateFCMToken');
-Route::post('push', 'API\GetInfoApp@push');
