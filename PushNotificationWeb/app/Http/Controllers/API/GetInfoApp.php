@@ -108,8 +108,8 @@ class GetInfoApp extends Controller
         $serverKey = "AAAAST4QH5Y:APA91bGUy0VnHuUu580KBNvVcWkWym6ZIDG_HyDt5muYgZ1YxqvjDOQWNlxCwcnJEFVwfPULB6YN4FiQONgOmRtc9SJNp14iMrb5cm50kRPdJ_aqPXAJ-9vewSbu8haIMMhWkn7L6mFm";
         $url = 'https://fcm.googleapis.com/fcm/send';
         $resPushNotification = array(
-            "body" => $request->get('title'),
-            "title" => $request->get('body')
+            "title" => $request->get('title'),
+            "body" => $request->get('body')
         );
         $data = '';
         if ($os == "1") {
@@ -170,8 +170,8 @@ class GetInfoApp extends Controller
         $serverKey = "AAAAST4QH5Y:APA91bGUy0VnHuUu580KBNvVcWkWym6ZIDG_HyDt5muYgZ1YxqvjDOQWNlxCwcnJEFVwfPULB6YN4FiQONgOmRtc9SJNp14iMrb5cm50kRPdJ_aqPXAJ-9vewSbu8haIMMhWkn7L6mFm";
         $url = 'https://fcm.googleapis.com/fcm/send';
         $resPushNotification = array(
-            "body" => $request->get('title'),
-            "title" => $request->get('body')
+            "title" => $request->get('title'),
+            "body" => $request->get('body')
         );
 
 
