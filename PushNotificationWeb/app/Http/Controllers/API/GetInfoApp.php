@@ -163,6 +163,7 @@ class GetInfoApp extends Controller
     }
 
     public function pushAll(Request $request) {
+        $bundleID = $request->get('bundleID');
         $dataReturn = 'fail';
         $status = 404;
         $errorMsg = 'not fcm_token';
@@ -174,10 +175,37 @@ class GetInfoApp extends Controller
         );
 
         $responseData['success'] = '';
-        $tokenIos = DB::table('info_app')->select('fcmToken')->where('deviceType','1')->get();
-        $tokenAndroid = DB::table('info_app')->select('fcmToken')->where('deviceType','0')->get();
-
+        $tokenIos = [];
+        $tokenAndroid = [];
         $registration_ids_ios = [];
+        $registration_ids_android = [];
+
+        if ($bundleID == "all") {
+            $tokenIos = DB::table('info_app')
+            ->select('fcmToken')
+            ->where('deviceType','1')
+            ->whereNotNull('fcmToken')
+            ->get();
+            $tokenAndroid = DB::table('info_app')
+            ->select('fcmToken')
+            ->where('deviceType','0')
+            ->whereNotNull('fcmToken')
+            ->get();
+        } else {
+            $tokenIos = DB::table('info_app')
+            ->select('fcmToken')
+            ->where('deviceType','1')
+            ->Where('bundleID', $bundleID)
+            ->whereNotNull('fcmToken')
+            ->get();
+            $tokenAndroid = DB::table('info_app')
+            ->select('fcmToken')
+            ->where('deviceType','0')
+            ->Where('bundleID', $bundleID)
+            ->whereNotNull('fcmToken')
+            ->get();
+        }
+
         if (!$tokenIos->isEmpty()){
             for ($i=0; $i < count($tokenIos); $i++) { 
                 if(!is_null($tokenIos[$i]->fcmToken)){
@@ -189,7 +217,6 @@ class GetInfoApp extends Controller
             }
         }
 
-        $registration_ids_android = [];
         if (!$tokenAndroid->isEmpty()){
             for ($i=0; $i < count($tokenAndroid); $i++) { 
                 if(!is_null($tokenAndroid[$i]->fcmToken)){
