@@ -103,7 +103,7 @@ class GetInfoApp extends Controller
         
         $dataReturn = 'fail';
         $status = 404;
-        $errorMsg = 'device has not been updated on server';
+        $errorMsg = 'fcm_token fails';
 
         $serverKey = "AAAAST4QH5Y:APA91bGUy0VnHuUu580KBNvVcWkWym6ZIDG_HyDt5muYgZ1YxqvjDOQWNlxCwcnJEFVwfPULB6YN4FiQONgOmRtc9SJNp14iMrb5cm50kRPdJ_aqPXAJ-9vewSbu8haIMMhWkn7L6mFm";
         $url = 'https://fcm.googleapis.com/fcm/send';
@@ -165,8 +165,7 @@ class GetInfoApp extends Controller
     public function pushAll(Request $request) {
         $dataReturn = 'fail';
         $status = 404;
-        $errorMsg = 'device has not been updated on server';
-        /*$s = "AAAAQq6fsPY:APA91bF8ChFGBow9rIDMimlCXjIwBbNB23CJm_kr_xlWcNIRCYkwsP-gbwNarB8WB5oc1aWkOrnx61eWYQndlejqNTCFXvA8ZCFpLhwP9ez8jGRGBFmzNXejMZBJ47h4l1qum3HIGYjg";*/
+        $errorMsg = 'not fcm_token';
         $serverKey = "AAAAST4QH5Y:APA91bGUy0VnHuUu580KBNvVcWkWym6ZIDG_HyDt5muYgZ1YxqvjDOQWNlxCwcnJEFVwfPULB6YN4FiQONgOmRtc9SJNp14iMrb5cm50kRPdJ_aqPXAJ-9vewSbu8haIMMhWkn7L6mFm";
         $url = 'https://fcm.googleapis.com/fcm/send';
         $resPushNotification = array(
@@ -174,26 +173,36 @@ class GetInfoApp extends Controller
             "body" => $request->get('body')
         );
 
-
+        $responseData['success'] = '';
         $tokenIos = DB::table('info_app')->select('fcmToken')->where('deviceType','1')->get();
         $tokenAndroid = DB::table('info_app')->select('fcmToken')->where('deviceType','0')->get();
 
         $registration_ids_ios = [];
-        for ($i=0; $i < count($tokenIos); $i++) { 
-            foreach ($tokenAndroid[$i] as $token) {
-                array_push($registration_ids_ios, $token);
+        if (!$tokenIos->isEmpty()){
+            for ($i=0; $i < count($tokenIos); $i++) { 
+                if(!is_null($tokenIos[$i]->fcmToken)){
+                    foreach ($tokenIos[$i] as $token) {
+                        array_push($registration_ids_ios, $token);
+                    }
+                }
+                
             }
         }
 
         $registration_ids_android = [];
-        for ($i=0; $i < count($tokenAndroid); $i++) { 
-            foreach ($tokenAndroid[$i] as $token) {
-                array_push($registration_ids_android, $token);
+        if (!$tokenAndroid->isEmpty()){
+            for ($i=0; $i < count($tokenAndroid); $i++) { 
+                if(!is_null($tokenAndroid[$i]->fcmToken)){
+                    foreach ($tokenAndroid[$i] as $token) {
+                        array_push($registration_ids_android, $token);
+                    }
+                }
+                
             }
         }
 
         $data = '';
-        if (!$tokenIos->isEmpty()) {
+        if ($registration_ids_ios != null) {
             $data = array(
                 "collapse_key" => "type_a",
                 "content_available" => true,
@@ -218,7 +227,7 @@ class GetInfoApp extends Controller
             }
             $responseData = json_decode($result, TRUE);
         }
-        if (!$tokenAndroid->isEmpty()) {
+        if ($registration_ids_android != null) {
             $data = array(
                 "collapse_key" => "type_a",
                 "content_available" => true,
@@ -256,7 +265,7 @@ class GetInfoApp extends Controller
         return response()->json([
             'result' => 0,
             'now_dt' => date('Y-m-d H:i:s'),
-            'data' => $responseData,
+            'data' => $dataReturn,
             'err_cd' => $status,
             'err_msg' => $errorMsg
         ], $status);
