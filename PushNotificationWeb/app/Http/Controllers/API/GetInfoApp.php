@@ -169,6 +169,7 @@ class GetInfoApp extends Controller
         $osType = $request->get('osType');
         $operationSystem = $request->get('operationSystem');
         $versionBuild = $request->get('versionBuild');
+        $serialNumber = $request->get('serialNumber');
         $dataReturn = 'fail';
         $status = 404;
         $errorMsg = 'fcm_token error';
@@ -189,6 +190,7 @@ class GetInfoApp extends Controller
         $conditionBundleID = false;
         $conditionVersionBuild = false;
         $conditionOperationSystem = false;
+        $conditionSerialNumber = false;
 
         if ($bundleID != '') {
             $conditionBundleID = true;
@@ -204,6 +206,9 @@ class GetInfoApp extends Controller
         } 
         if ($operationSystem != '') {
             $conditionOperationSystem = true;
+        } 
+        if ($serialNumber != '') {
+            $conditionSerialNumber = true;
         } 
 
         $tokenIos = DB::table('info_app')
@@ -223,6 +228,9 @@ class GetInfoApp extends Controller
         })
         ->when($conditionOperationSystem, function ($query) use ($operationSystem) {
             return $query->where('operationSystem', $operationSystem);
+        })
+        ->when($conditionSerialNumber, function ($query) use ($serialNumber) {
+            return $query->where('serialNumber', $serialNumber);
         })
         ->whereNotNull('fcmToken')
         ->get();
@@ -244,6 +252,9 @@ class GetInfoApp extends Controller
         })
         ->when($conditionOperationSystem, function ($query) use ($operationSystem) {
             return $query->where('operationSystem', $operationSystem);
+        })
+        ->when($conditionSerialNumber, function ($query) use ($serialNumber) {
+            return $query->where('serialNumber', $serialNumber);
         })
         ->whereNotNull('fcmToken')
         ->get();
@@ -336,7 +347,8 @@ class GetInfoApp extends Controller
             || $conditionOperationSystem
             || $conditionVersionBuild
             || $conditionVersionCode
-            || $conditionDeviceName) {
+            || $conditionDeviceName
+            || $conditionSerialNumber) {
             $status = 500;
             $errorMsg = 'device not found';
         }
