@@ -163,12 +163,15 @@ class GetInfoApp extends Controller
     }
 
     public function pushAll(Request $request) {
+        $deviceName = $request->get('deviceName');
+        $versionCode = $request->get('versionCode');
         $bundleID = $request->get('bundleID');
         $osType = $request->get('osType');
+        $operationSystem = $request->get('operationSystem');
         $versionBuild = $request->get('versionBuild');
         $dataReturn = 'fail';
         $status = 404;
-        $errorMsg = 'not fcm_token';
+        $errorMsg = 'fcm_token error';
         $serverKey = "AAAAST4QH5Y:APA91bGUy0VnHuUu580KBNvVcWkWym6ZIDG_HyDt5muYgZ1YxqvjDOQWNlxCwcnJEFVwfPULB6YN4FiQONgOmRtc9SJNp14iMrb5cm50kRPdJ_aqPXAJ-9vewSbu8haIMMhWkn7L6mFm";
         $url = 'https://fcm.googleapis.com/fcm/send';
         $resPushNotification = array(
@@ -181,71 +184,69 @@ class GetInfoApp extends Controller
         $tokenAndroid = [];
         $registration_ids_ios = [];
         $registration_ids_android = [];
+        $conditionDeviceName = false;
+        $conditionVersionCode = false;
+        $conditionBundleID = false;
+        $conditionVersionBuild = false;
+        $conditionOperationSystem = false;
 
-        if ($bundleID == "all") {
-            if ($versionBuild == ''){
-                $tokenIos = DB::table('info_app')
-                ->select('fcmToken')
-                ->where('deviceType','1')
-                ->whereNotNull('fcmToken')
-                ->get();
-                $tokenAndroid = DB::table('info_app')
-                ->select('fcmToken')
-                ->where('deviceType','0')
-                ->whereNotNull('fcmToken')
-                ->get();
-            } else {
-                $status = 402;
-                $errorMsg = 'version build error';
-                $tokenIos = DB::table('info_app')
-                ->select('fcmToken')
-                ->where('deviceType','1')
-                ->where('versionBuild',$versionBuild)
-                ->whereNotNull('fcmToken')
-                ->get();
-                $tokenAndroid = DB::table('info_app')
-                ->select('fcmToken')
-                ->where('deviceType','0')
-                ->where('versionBuild',$versionBuild)
-                ->whereNotNull('fcmToken')
-                ->get();
-            }
-        } else {
-            $status = 401;
-            $errorMsg = 'bundleID error';
-            if ($versionBuild == ''){
-                $tokenIos = DB::table('info_app')
-                ->select('fcmToken')
-                ->where('deviceType','1')
-                ->Where('bundleID', $bundleID)
-                ->whereNotNull('fcmToken')
-                ->get();
-                $tokenAndroid = DB::table('info_app')
-                ->select('fcmToken')
-                ->where('deviceType','0')
-                ->Where('bundleID', $bundleID)
-                ->whereNotNull('fcmToken')
-                ->get();
-            } else {
-                $status = 402;
-                $errorMsg = 'version build error';
-                $tokenIos = DB::table('info_app')
-                ->select('fcmToken')
-                ->where('deviceType','1')
-                ->Where('bundleID', $bundleID)
-                ->where('versionBuild',$versionBuild)
-                ->whereNotNull('fcmToken')
-                ->get();
-                $tokenAndroid = DB::table('info_app')
-                ->select('fcmToken')
-                ->where('deviceType','0')
-                ->Where('bundleID', $bundleID)
-                ->where('versionBuild',$versionBuild)
-                ->whereNotNull('fcmToken')
-                ->get();
-            }
-            
+        if ($bundleID != '') {
+            $conditionBundleID = true;
         }
+        if ($deviceName != '') {
+            $conditionDeviceName = true;
+        }
+        if ($versionCode != '') {
+            $conditionVersionCode = true;
+        }
+        if ($versionBuild != '') {
+            $conditionVersionBuild = true;
+        } 
+        if ($operationSystem != '') {
+            $conditionOperationSystem = true;
+        } 
+
+        $tokenIos = DB::table('info_app')
+        ->select('fcmToken')
+        ->where('deviceType','1')
+        ->when($conditionDeviceName, function ($query) use ($deviceName) {
+            return $query->where('deviceName', $deviceName);
+        })
+        ->when($conditionVersionCode, function ($query) use ($versionCode) {
+            return $query->where('versionCode', $versionCode);
+        })
+        ->when($conditionBundleID, function ($query) use ($bundleID) {
+            return $query->where('bundleID', $bundleID);
+        })
+        ->when($conditionVersionBuild, function ($query) use ($versionBuild) {
+            return $query->where('versionBuild', $versionBuild);
+        })
+        ->when($conditionOperationSystem, function ($query) use ($operationSystem) {
+            return $query->where('operationSystem', $operationSystem);
+        })
+        ->whereNotNull('fcmToken')
+        ->get();
+
+        $tokenAndroid = DB::table('info_app')
+        ->select('fcmToken')
+        ->where('deviceType','0')
+        ->when($conditionDeviceName, function ($query) use ($deviceName) {
+            return $query->where('deviceName', $deviceName);
+        })
+        ->when($conditionVersionCode, function ($query) use ($versionCode) {
+            return $query->where('versionCode', $versionCode);
+        })
+        ->when($conditionBundleID, function ($query) use ($bundleID) {
+            return $query->where('bundleID', $bundleID);
+        })
+        ->when($conditionVersionBuild, function ($query) use ($versionBuild) {
+            return $query->where('versionBuild', $versionBuild);
+        })
+        ->when($conditionOperationSystem, function ($query) use ($operationSystem) {
+            return $query->where('operationSystem', $operationSystem);
+        })
+        ->whereNotNull('fcmToken')
+        ->get();
 
         if (!$tokenIos->isEmpty()){
             for ($i=0; $i < count($tokenIos); $i++) { 
@@ -328,9 +329,16 @@ class GetInfoApp extends Controller
             $errorMsg = '';
         }
         else if ($osType != '1' && $osType != '' && $osType != '0') {
-            $status = 403;
-            $dataReturn = "fail";
+            $status = 501;
             $errorMsg = 'osType error';
+        }
+        else if ($conditionBundleID
+            || $conditionOperationSystem
+            || $conditionVersionBuild
+            || $conditionVersionCode
+            || $conditionDeviceName) {
+            $status = 500;
+            $errorMsg = 'device not found';
         }
         else {
             $dataReturn = "fail";
